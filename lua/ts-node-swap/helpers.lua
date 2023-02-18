@@ -1,15 +1,9 @@
 local M = {}
 
-local container_patterns = {
-  "hash", "array", "object", "parameter", "argument", "imports",
-  "dictionary", "touple", "set", "program", "list", "body", "chunk",
-  "block"
-}
-
 local function parent_is_containter(node)
   local parent_type = node:parent():type()
 
-  for _, pattern in ipairs(container_patterns) do
+  for _, pattern in ipairs(require("ts-node-swap").container_patterns) do
     local match, _ = parent_type:match(pattern)
     if match then
       return true
@@ -60,6 +54,19 @@ end
 
 function M.set_jump()
   vim.cmd("normal! m'")
+end
+
+function M.print_ancestors()
+  local node = require("nvim-treesitter.ts_utils").get_node_at_cursor()
+  if not node then return end
+
+  local tree = { node:type() }
+  while node:parent() do
+    table.insert(tree, node:parent():type())
+    node = node:parent()
+  end
+
+  vim.pretty_print(tree)
 end
 
 return M

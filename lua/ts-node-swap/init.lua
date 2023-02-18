@@ -1,25 +1,25 @@
-local ts_utils = require("nvim-treesitter.ts_utils")
-
 local M = {}
 
-function M.setup()
-  vim.api.nvim_create_user_command("SwapNext", require("ts-node-swap.swap").swap_next, {})
+local container_patterns = {
+  "hash", "array", "object", "parameter", "argument", "imports",
+  "dictionary", "touple", "set", "program", "list", "body", "chunk",
+  "table", "block"
+}
 
-  vim.api.nvim_create_user_command("SwapPrev", require("ts-node-swap.swap").swap_previous, {})
+local commands = {
+  { name = "SwapNext", fn = require("ts-node-swap.swap").swap_next },
+  { name = "SwapPrev", fn = require("ts-node-swap.swap").swap_previous },
+  { name = "NodeAncestors", fn = require("ts-node-swap.helpers").print_ancestors },
+}
 
-  vim.api.nvim_create_user_command("NodeAncestors", function()
-    local node = ts_utils.get_node_at_cursor()
-    if not node then return end
+function M.setup(opts)
+  M.container_patterns = vim.tbl_flatten(
+    { container_patterns, opts.container_patterns or {} }
+  )
 
-    local tree = { node:type() }
-    while node:parent() do
-      table.insert(tree, node:parent():type())
-      node = node:parent()
-    end
-
-    P(tree)
-  end,
-    {})
+  for _, command in ipairs(commands) do
+    vim.api.nvim_create_user_command(command.name, command.fn, {})
+  end
 end
 
 return M
