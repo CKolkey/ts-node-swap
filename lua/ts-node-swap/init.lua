@@ -1,7 +1,7 @@
 local M = {}
 
 local container_patterns = {
-  "hash", "array", "object", "parameter", "argument", "imports",
+  "hash", "array", "object", "parameters", "argument", "imports",
   "dictionary", "touple", "set", "program", "list", "body", "chunk",
   "table", "block"
 }
