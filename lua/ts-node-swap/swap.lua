@@ -1,7 +1,6 @@
-local M = {}
+local M       = {}
 
-local helpers  = require("ts-node-swap.helpers")
-local ts_utils = require("nvim-treesitter.ts_utils")
+local helpers = require("ts-node-swap.helpers")
 
 local function line_delta(range1, range2, text1, text2)
   local delta = 0
@@ -39,9 +38,20 @@ local function update_cursor(range1, range2, text1, text2)
   vim.api.nvim_win_set_cursor(0, { range2.start.line + 1 + delta_l, range2.start.character + delta_c })
 end
 
+---@param node TSNode
+---@return lsp.Range
+local function to_range(node)
+  return vim.range(
+    vim.api.nvim_get_current_buf(),
+    node:range()
+  ):to_lsp("utf-8")
+end
+
+---@param node_1 TSNode
+---@param node_2 TSNode
 local function swap_nodes(node_1, node_2)
-  local range1 = ts_utils.node_to_lsp_range(node_1)
-  local range2 = ts_utils.node_to_lsp_range(node_2)
+  local range1 = to_range(node_1)
+  local range2 = to_range(node_2)
 
   local text1 = helpers.get_node_text(node_1)
   local text2 = helpers.get_node_text(node_2)
@@ -58,6 +68,9 @@ local function swap(node, direction, set_jump)
   if not node then return end
 
   node = helpers.swappable_node(node)
+  if not node then
+    return
+  end
 
   local swap_node = helpers.find_swap(node, direction)
 
@@ -87,11 +100,11 @@ local function swap(node, direction, set_jump)
 end
 
 function M.swap_previous()
-  swap(ts_utils.get_node_at_cursor(), "prev", true)
+  swap(vim.treesitter.get_node(), "prev", true)
 end
 
 function M.swap_next()
-  swap(ts_utils.get_node_at_cursor(), "next", true)
+  swap(vim.treesitter.get_node(), "next", true)
 end
 
 return M

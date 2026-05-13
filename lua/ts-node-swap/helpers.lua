@@ -1,8 +1,16 @@
 local M = {}
 
-local function parent_is_containter(node)
-  local parent_type = node:parent():type()
+local function parent_is_container(node)
+  if not node then
+    return false
+  end
 
+  local parent = node:parent()
+  if not parent then
+    return false
+  end
+
+  local parent_type = parent:type()
   for _, pattern in ipairs(require("ts-node-swap").container_patterns) do
     local match, _ = parent_type:match(pattern)
     if match then
@@ -14,14 +22,21 @@ local function parent_is_containter(node)
 end
 
 function M.swappable_node(node)
-  while not parent_is_containter(node) do
+  while not parent_is_container(node) do
     node = node:parent()
+    if not node then
+      break
+    end
   end
 
   return node
 end
 
 function M.find_swap(node, direction)
+  if not node then
+    return
+  end
+
   if direction == "prev" then
     return node:prev_named_sibling()
   else
@@ -57,7 +72,7 @@ function M.set_jump()
 end
 
 function M.print_ancestors()
-  local node = require("nvim-treesitter.ts_utils").get_node_at_cursor()
+  local node = vim.treesitter.get_node_at_cursor()
   if not node then return end
 
   local tree = { node:type() }
